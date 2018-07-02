@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <context:component-scan base-package="com.springmvc_test"><!-- use-default-filters="false"-->
+       <!-- <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Component"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Repository"/>-->
+    </context:component-scan>
+
+    <!--视图解析器-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!--国际化bean  注意：这个bean的ID必须为 messageSource -->
+    <bean class="org.springframework.context.support.ResourceBundleMessageSource"
+            id="messageSource">
+        <!--配置一个消息文件-->
+        <property name="basename" value="i18n"/>
+        <!--
+        配置多个消息文件
+        <property name="basenames">
+            <set>
+                <value>i18n</value>
+                <value>ValidationMessages</value>
+            </set>
+        </property>
+        -->
+    </bean>
+
+    <!--配置验证bean，配置了该bean后，验证出错时错误消息使用EL表达式-->
+    <bean class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"
+        id="validator">
+        <!--提供验证功能的类-->
+        <property name="providerClass" value="org.hibernate.validator.HibernateValidator"/>
+        <!--消息来源-->
+        <property name="validationMessageSource" ref="messageSource"/>
+    </bean>
+
+    <!--将自定义类型转换器加入到默认的类型转换器中：-->
+    <bean class="org.springframework.format.support.FormattingConversionServiceFactoryBean" id="conversionService">
+        <property name="converters">
+            <set>
+                <ref bean="myConverterService"/>
+            </set>
+        </property>
+    </bean>
+
+    <!--把配置好的类型转换器注册到IOC容器中 conversion-service属性  -->
+    <!--把配置好的验证器注册到IOC容器中 validator属性 -->
+    <mvc:annotation-driven validator="validator" conversion-service="conversionService"/>
+    <mvc:default-servlet-handler />
+</beans>
